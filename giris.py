@@ -1,5 +1,6 @@
 from tkinter import *
 import os 
+from tkinter import messagebox
 root = Tk()
 root.title("Bal Kaynak Sistemi | Giriş Ekranı")
 
@@ -21,9 +22,10 @@ def kayit_ac():
     os.system('py kayit.py')
 
 def giris_tikla():
-    #veritabanındaki veriler doğruysa kayıt.py'ye yollar
+    #veritabanındaki veriler doğruysa musteri sistemine yollar.
     #doğru değilse kullanıcıya uyarı verir
-    pass
+    root.destroy()
+    os.system('py kullanici.py')
     
 #design olarak border ve padding ekle sonra
 #font seç
