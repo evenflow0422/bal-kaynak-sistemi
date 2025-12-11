@@ -1,6 +1,10 @@
 from tkinter import *
 import os 
 from tkinter import messagebox
+import bcrypt
+import json
+from baglanti import veritabani_baglanti, baglanti_kapat
+
 root = Tk()
 root.title("Bal Kaynak Sistemi | Giriş Ekranı")
 
@@ -22,11 +26,53 @@ def kayit_ac():
     os.system('py kayit.py')
 
 def giris_tikla():
-    #veritabanındaki veriler doğruysa musteri sistemine yollar.
-    #doğru değilse kullanıcıya uyarı verir
-    root.destroy()
-    os.system('py kullanici.py')
-    
+    kullaniciAdi = kullaniciEntry.get().strip()
+    sifre = sifreEntry.get().strip()
+    if not kullaniciAdi or not sifre:
+        messagebox.showwarning("Eksik Bilgi", "Lütfen tüm alanları doldurun.")
+        return
+    baglanti = veritabani_baglanti()
+
+    if baglanti is None:
+        messagebox.showerror("Hata","Veritabanına bağlanılamadı")
+        return
+    try:
+        cursor=baglanti.cursor(dictionary=True)
+        girisSql="SELECT * FROM musteriler WHERE kullanici_adi=%s"
+        cursor.execute(girisSql,(kullaniciAdi,))
+        kullanici=cursor.fetchone()
+        
+        giris_basarili=False
+
+        if kullanici is not None:
+            db_sifre=kullanici['sifre']
+        #şifre hashli mi değil mi
+            try:
+                if bcrypt.checkpw(sifre.encode('utf-8'),db_sifre.encode('utf-8')):
+                    giris_basarili=True
+            except:
+                if sifre==db_sifre:
+                    giris_basarili=True
+        if giris_basarili:
+            messagebox.showinfo("Başarılı","Giriş başarılı!")
+            baglanti_kapat(baglanti)
+            root.destroy()
+            os.system('py kullanici.py')
+        else:
+            messagebox.showerror("Hata","Kullanıcı adı veya şifre yanlış.")
+            #kullanıcının girdiği alanları siler
+            kullaniciEntry.delete(0,END)
+            sifreEntry.delete(0,END)
+            kullaniciEntry.focus()
+    except Exception as e:
+        messagebox.showerror("Hata",f"Giriş sırasında bir hata oluştu: {str(e)}")
+        kullaniciEntry.delete(0,END)
+        sifreEntry.delete(0,END)
+        kullaniciEntry.focus()
+    finally:
+        if baglanti and baglanti.is_connected():
+            baglanti_kapat(baglanti)
+              
 #design olarak border ve padding ekle sonra
 #font seç
 
