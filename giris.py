@@ -16,10 +16,12 @@ x = (ekran_genislik - pencere_genislik) // 2
 y = (ekran_yukseklik - pencere_yukseklik) // 2
 root.geometry(f"{pencere_genislik}x{pencere_yukseklik}+{x}+{y}")
 
+frame=Frame(root,background="#8e4200",padx=20,pady=20)
+
 root.resizable(False, False)
 icon = PhotoImage(file='minecraft-bee.png')
 root.iconphoto(True,icon)
-root.config(background="#ffd69c")
+root.config(background="#8e4200")
 
 def kayit_ac():
     root.destroy()
@@ -57,7 +59,7 @@ def giris_tikla():
             messagebox.showinfo("Başarılı","Giriş başarılı!")
             baglanti_kapat(baglanti)
             root.destroy()
-            os.system('py kullanici.py')
+            os.system(f'py kullanici.py "{kullaniciAdi}"')
         else:
             messagebox.showerror("Hata","Kullanıcı adı veya şifre yanlış.")
             #kullanıcının girdiği alanları siler
@@ -73,32 +75,32 @@ def giris_tikla():
         if baglanti and baglanti.is_connected():
             baglanti_kapat(baglanti)
               
-#design olarak border ve padding ekle sonra
-#font seç
-
-#arayüzde gözüken değerler
-baslikLabel=Label(root,text="Hoşgeldiniz! Giriş Yapınız",font=("Arial",16))
-kullaniciLabel=Label(root,text="Kullanıcı Adı:")
-kullaniciEntry=Entry(root)
-sifreLabel=Label(root,text="Şifre:")
-sifreEntry=Entry(root,show='*')
-girisButton=Button(root,text="Giriş Yap",command=giris_tikla,
-                   bg='white', fg='orange',
+baslikLabel=Label(frame,text="Hoşgeldiniz! Giriş Yapınız",font=("Times New Roman",20),fg="#ff9624",
+                  bg="#8e4200")
+kullaniciLabel=Label(frame,text="Kullanıcı Adı:",fg="#ffd69c",bg="#8e4200",
+                     font=("Georgia",12))
+kullaniciEntry=Entry(frame)
+sifreLabel=Label(frame,text="Şifre:",fg="#ffd69c",bg="#8e4200",
+                     font=("Georgia",12))
+sifreEntry=Entry(frame,show='*')
+girisButton=Button(frame,text="Giriş Yap",command=giris_tikla,
+                   bg="#773903", fg='orange', font=("Georgia",12),
                    activebackground='orange',activeforeground='white')
-hesapYokLabel=Label(root,text="Hesabım yok, kayıt oluştur.",
-                    fg='blue',
+hesapYokLabel=Label(frame,text="Hesabım yok, kayıt oluştur.",
+                    fg='#ffb825',
                     font=('Arial',9,'underline'),
-                    cursor='hand2')
+                    cursor='hand2',bg="#8e4200")
 
  #yerleştirme
-baslikLabel.grid(row=0,column=0)
+baslikLabel.grid(row=0,column=0,columnspan=2,pady=10)
 kullaniciLabel.grid(row=1,column=0)
-kullaniciEntry.grid(row=1,column=1)
+kullaniciEntry.grid(row=1,column=1,pady=5)
 sifreLabel.grid(row=2,column=0)
-sifreEntry.grid(row=2,column=1)
-girisButton.grid(row=3,column=0)
-hesapYokLabel.grid(row=4,column=0)
+sifreEntry.grid(row=2,column=1,pady=5)
+girisButton.grid(row=3,column=0,columnspan=2,pady=10)
+hesapYokLabel.grid(row=4,column=1,sticky=E)
 
+root.bind("<Return>", lambda event: girisButton.invoke())
 hesapYokLabel.bind("<Button-1>",lambda e: kayit_ac())
-
+frame.pack()
 root.mainloop()

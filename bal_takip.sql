@@ -1,6 +1,6 @@
 -- =====================================================
 -- BAL TAKİP SİSTEMİ VERİTABANI
--- MySQL 8.0+ uyumlu - Aktif/Pasif durumu kaldırılmış
+-- MySQL 8.0+ uyumlu - Hatasız versiyon
 -- =====================================================
 
 DROP DATABASE IF EXISTS bal_takip;
@@ -12,6 +12,7 @@ COLLATE utf8mb4_turkish_ci;
 USE bal_takip;
 -- =====================================================
 -- MÜŞTERİLER TABLOSU
+-- Kayıt olan kullanıcılar otomatik buraya gelir
 -- =====================================================
 CREATE TABLE musteriler (
     musteri_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -22,7 +23,8 @@ CREATE TABLE musteriler (
     eposta VARCHAR(150) NOT NULL UNIQUE,
     sifre VARCHAR(255) NOT NULL,
     kayit_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    son_giris TIMESTAMP NULL
+    son_giris TIMESTAMP NULL,
+    aktif TINYINT(1) DEFAULT 1
 ) ENGINE=InnoDB;
 
 -- =====================================================
@@ -39,7 +41,8 @@ CREATE TABLE aricilar (
     aricilik_turu ENUM('Gezgin', 'Sabit') NOT NULL,
     uretim_turu ENUM('Konvansiyonel', 'Organik', 'Cografi Isaret Tescil Belgeli') NOT NULL,
     kovan_sayisi INT NOT NULL,
-    kayit_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    kayit_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    aktif TINYINT(1) DEFAULT 1
 ) ENGINE=InnoDB;
 
 -- =====================================================
@@ -110,6 +113,7 @@ CREATE TABLE ballar (
     uretim_tarihi DATE,
     aciklama TEXT,
     resim_url VARCHAR(500),
+    aktif TINYINT(1) DEFAULT 1,
     eklenme_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (cicek_bal_id) REFERENCES cicek_ballari(cicek_bal_id) ON DELETE RESTRICT,
@@ -147,6 +151,7 @@ CREATE TABLE degerlendirmeler (
 -- =====================================================
 CREATE INDEX idx_ballar_cinsi ON ballar(bal_cinsi);
 CREATE INDEX idx_ballar_arici ON ballar(arici_id);
+CREATE INDEX idx_ballar_aktif ON ballar(aktif);
 CREATE INDEX idx_degerlendirme_bal ON degerlendirmeler(bal_id);
 CREATE INDEX idx_degerlendirme_musteri ON degerlendirmeler(musteri_id);
 CREATE INDEX idx_aricilar_sehir ON aricilar(sehir);
@@ -161,4 +166,48 @@ SELECT
     b.bal_isim,
     b.bal_cinsi,
     CASE 
-        WHEN b.bal_
+        WHEN b.bal_cinsi = 'Cicek Bali' THEN cb.bal_adi
+        ELSE sb.bal_adi
+    END AS bal_turu,
+    CONCAT(rs.mm_aralik, ' - ', rs.renk_adi) AS bal_rengi,
+    b.fiyat,
+    b.stok_miktari,
+    b.agirlik_gram,
+    CONCAT(a.isim, ' ', a.soyisim) AS arici_adi,
+    a.sehir,
+    a.koy,
+    a.aricilik_turu,
+    a.uretim_turu,
+    CASE WHEN a.kovan_sayisi < 50 THEN 'Hobi' ELSE 'Profesyonel' END AS arici_tipi,
+    b.aktif,
+    b.resim_url,
+    (SELECT ROUND(AVG(d.yildiz), 1) FROM degerlendirmeler d WHERE d.bal_id = b.bal_id) AS ortalama_puan,
+    (SELECT COUNT(*) FROM degerlendirmeler d WHERE d.bal_id = b.bal_id) AS degerlendirme_sayisi
+FROM ballar b
+LEFT JOIN cicek_ballari cb ON b.cicek_bal_id = cb.cicek_bal_id
+LEFT JOIN salgi_ballari sb ON b.salgi_bal_id = sb.salgi_bal_id
+LEFT JOIN renk_skalasi rs ON b.renk_id = rs.renk_id
+LEFT JOIN aricilar a ON b.arici_id = a.arici_id;
+
+-- =====================================================
+-- ÖRNEK VERİLER
+-- =====================================================
+-- Örnek Arıcılar
+INSERT INTO aricilar (isim, soyisim, telefon, aks_kod, sehir, koy, aricilik_turu, uretim_turu, kovan_sayisi) VALUES 
+('Mehmet', 'Yilmaz', '05321234567', 'AKS-35-12345', 'Mugla', 'Ula', 'Gezgin', 'Organik', 150),
+('Ali', 'Kaya', '05339876543', 'AKS-48-67890', 'Mugla', 'Fethiye', 'Sabit', 'Konvansiyonel', 30);
+
+-- Örnek Ballar
+INSERT INTO ballar (bal_isim, bal_cinsi, cicek_bal_id, salgi_bal_id, renk_id, arici_id, fiyat, stok_miktari, agirlik_gram) VALUES 
+('Mugla Organik Cam Bali', 'Salgi Bali', NULL, 1, 6, 1, 450.00, 50, 850),
+('Fethiye Kestane Bali', 'Cicek Bali', 4, NULL, 7, 2, 380.00, 30, 500);
+
+-- Örnek Müşteri
+INSERT INTO musteriler (kullanici_adi, isim, soyisim, cinsiyet, eposta, sifre) VALUES
+('testuser', 'Test', 'Kullanici', 'Erkek', 'test@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+
+-- Örnek Değerlendirme
+INSERT INTO degerlendirmeler (bal_id, musteri_id, yildiz, yorum, onaylandi) VALUES
+(1, 1, 5, 'Cok lezzetli ve dogal bir bal, tavsiye ederim.', 1);
+
+SELECT 'Veritabani basariyla olusturuldu!' AS Sonuc;
