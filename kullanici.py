@@ -385,7 +385,7 @@ scrollbar.grid(row=0, column=1, sticky=NS)
 balTree.grid(row=0, column=0, sticky=NSEW)
 balTree.bind("<Double-1>", bal_sec)
 
-Label(root, text="İpucu: Bal üzerine çift tıklayarak değerlendirme yapabilirsiniz", 
+Label(root, text="Bal üzerine çift tıklayarak değerlendirme yapabilirsiniz", 
       font=("Georgia", 9), bg="#8e4200", fg="#ffb825").grid(row=3, column=0, pady=5)
 
 root.config(menu=menubar)
