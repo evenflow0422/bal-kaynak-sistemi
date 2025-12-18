@@ -1,5 +1,10 @@
 from tkinter import *
 import os 
+from tkinter import messagebox
+import bcrypt
+import json
+from baglanti import veritabani_baglanti, baglanti_kapat
+
 root = Tk()
 root.title("Bal Kaynak Sistemi | Giriş Ekranı")
 
@@ -11,46 +16,91 @@ x = (ekran_genislik - pencere_genislik) // 2
 y = (ekran_yukseklik - pencere_yukseklik) // 2
 root.geometry(f"{pencere_genislik}x{pencere_yukseklik}+{x}+{y}")
 
+frame=Frame(root,background="#8e4200",padx=20,pady=20)
+
 root.resizable(False, False)
 icon = PhotoImage(file='minecraft-bee.png')
 root.iconphoto(True,icon)
-root.config(background="#ffd69c")
+root.config(background="#8e4200")
 
 def kayit_ac():
     root.destroy()
     os.system('py kayit.py')
 
 def giris_tikla():
-    #veritabanındaki veriler doğruysa kayıt.py'ye yollar
-    #doğru değilse kullanıcıya uyarı verir
-    pass
-    
-#design olarak border ve padding ekle sonra
-#font seç
+    kullaniciAdi = kullaniciEntry.get().strip()
+    sifre = sifreEntry.get().strip()
+    if not kullaniciAdi or not sifre:
+        messagebox.showwarning("Eksik Bilgi", "Lütfen tüm alanları doldurun.")
+        return
+    baglanti = veritabani_baglanti()
 
-#arayüzde gözüken değerler
-baslikLabel=Label(root,text="Hoşgeldiniz! Giriş Yapınız",font=("Arial",16))
-kullaniciLabel=Label(root,text="Kullanıcı Adı:")
-kullaniciEntry=Entry(root)
-sifreLabel=Label(root,text="Şifre:")
-sifreEntry=Entry(root,show='*')
-girisButton=Button(root,text="Giriş Yap",command=giris_tikla,
-                   bg='white', fg='orange',
+    if baglanti is None:
+        messagebox.showerror("Hata","Veritabanına bağlanılamadı")
+        return
+    try:
+        cursor=baglanti.cursor(dictionary=True)
+        girisSql="SELECT * FROM musteriler WHERE kullanici_adi=%s"
+        cursor.execute(girisSql,(kullaniciAdi,))
+        kullanici=cursor.fetchone()
+        
+        giris_basarili=False
+
+        if kullanici is not None:
+            db_sifre=kullanici['sifre']
+        #şifre hashli mi değil mi
+            try:
+                if bcrypt.checkpw(sifre.encode('utf-8'),db_sifre.encode('utf-8')):
+                    giris_basarili=True
+            except:
+                if sifre==db_sifre:
+                    giris_basarili=True
+        if giris_basarili:
+            messagebox.showinfo("Başarılı","Giriş başarılı!")
+            baglanti_kapat(baglanti)
+            root.destroy()
+            os.system(f'py kullanici.py "{kullaniciAdi}"')
+        else:
+            messagebox.showerror("Hata","Kullanıcı adı veya şifre yanlış.")
+            #kullanıcının girdiği alanları siler
+            kullaniciEntry.delete(0,END)
+            sifreEntry.delete(0,END)
+            kullaniciEntry.focus()
+    except Exception as e:
+        messagebox.showerror("Hata",f"Giriş sırasında bir hata oluştu: {str(e)}")
+        kullaniciEntry.delete(0,END)
+        sifreEntry.delete(0,END)
+        kullaniciEntry.focus()
+    finally:
+        if baglanti and baglanti.is_connected():
+            baglanti_kapat(baglanti)
+              
+baslikLabel=Label(frame,text="Hoşgeldiniz! Giriş Yapınız",font=("Times New Roman",20),fg="#ff9624",
+                  bg="#8e4200")
+kullaniciLabel=Label(frame,text="Kullanıcı Adı:",fg="#ffd69c",bg="#8e4200",
+                     font=("Georgia",12))
+kullaniciEntry=Entry(frame)
+sifreLabel=Label(frame,text="Şifre:",fg="#ffd69c",bg="#8e4200",
+                     font=("Georgia",12))
+sifreEntry=Entry(frame,show='*')
+girisButton=Button(frame,text="Giriş Yap",command=giris_tikla,
+                   bg="#773903", fg='orange', font=("Georgia",12),
                    activebackground='orange',activeforeground='white')
-hesapYokLabel=Label(root,text="Hesabım yok, kayıt oluştur.",
-                    fg='blue',
+hesapYokLabel=Label(frame,text="Hesabım yok, kayıt oluştur.",
+                    fg='#ffb825',
                     font=('Arial',9,'underline'),
-                    cursor='hand2')
+                    cursor='hand2',bg="#8e4200")
 
  #yerleştirme
-baslikLabel.grid(row=0,column=0)
+baslikLabel.grid(row=0,column=0,columnspan=2,pady=10)
 kullaniciLabel.grid(row=1,column=0)
-kullaniciEntry.grid(row=1,column=1)
+kullaniciEntry.grid(row=1,column=1,pady=5)
 sifreLabel.grid(row=2,column=0)
-sifreEntry.grid(row=2,column=1)
-girisButton.grid(row=3,column=0)
-hesapYokLabel.grid(row=4,column=0)
+sifreEntry.grid(row=2,column=1,pady=5)
+girisButton.grid(row=3,column=0,columnspan=2,pady=10)
+hesapYokLabel.grid(row=4,column=1,sticky=E)
 
+root.bind("<Return>", lambda event: girisButton.invoke())
 hesapYokLabel.bind("<Button-1>",lambda e: kayit_ac())
-
+frame.pack()
 root.mainloop()

@@ -10,20 +10,6 @@ CHARACTER SET utf8mb4
 COLLATE utf8mb4_turkish_ci;
 
 USE bal_takip;
-
--- =====================================================
--- ADMIN TABLOSU
--- Not: Uygulama içinden kayıt olunamaz, direkt DB'ye yazılır
--- =====================================================
-CREATE TABLE admin (
-    admin_id INT AUTO_INCREMENT PRIMARY KEY,
-    kullanici_adi VARCHAR(50) NOT NULL UNIQUE,
-    sifre VARCHAR(255) NOT NULL,
-    isim VARCHAR(100) NOT NULL,
-    soyisim VARCHAR(100) NOT NULL,
-    olusturma_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
 -- =====================================================
 -- MÜŞTERİLER TABLOSU
 -- Kayıt olan kullanıcılar otomatik buraya gelir
@@ -206,27 +192,30 @@ LEFT JOIN aricilar a ON b.arici_id = a.arici_id;
 -- =====================================================
 -- ÖRNEK VERİLER
 -- =====================================================
-
--- Admin (sifre: admin123)
-INSERT INTO admin (kullanici_adi, sifre, isim, soyisim) VALUES 
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sistem', 'Yoneticisi');
-
 -- Örnek Arıcılar
 INSERT INTO aricilar (isim, soyisim, telefon, aks_kod, sehir, koy, aricilik_turu, uretim_turu, kovan_sayisi) VALUES 
-('Mehmet', 'Yilmaz', '05321234567', 'AKS-35-12345', 'Mugla', 'Ula', 'Gezgin', 'Organik', 150),
-('Ali', 'Kaya', '05339876543', 'AKS-48-67890', 'Mugla', 'Fethiye', 'Sabit', 'Konvansiyonel', 30);
+('Mehmet', 'Yılmaz', '05321234567', 'AKS-35-12345', 'Muğla', 'Ula', 'Gezgin', 'Organik', 150),
+('Ali', 'Kaya', '05339876543', 'AKS-48-67890', 'Muğla', 'Fethiye', 'Sabit', 'Konvansiyonel', 30),
+('Ayşe', 'Demir', '05331112233', 'AKS-32-11111', 'Isparta', 'Keçiborlu', 'Gezgin', 'Organik', 80),
+('Fatma', 'Çelik', '05344445566', 'AKS-07-22222', 'Antalya', 'Manavgat', 'Sabit', 'Konvansiyonel', 45),
+('Hasan', 'Şahin', '05355556677', 'AKS-17-33333', 'Çanakkale', 'Ezine', 'Gezgin', 'Organik', 120),
+('Zeynep', 'Öztürk', '05366667788', 'AKS-10-44444', 'Balıkesir', 'Gönen', 'Sabit', 'Organik', 65),
+('Mustafa', 'Arslan', '05377778899', 'AKS-25-55555', 'Erzurum', 'Narman', 'Gezgin', 'Konvansiyonel', 95),
+('Emine', 'Koç', '05388889900', 'AKS-52-66666', 'Ordu', 'Mesudiye', 'Sabit', 'Organik', 55),
+('İbrahim', 'Kurt', '05399990011', 'AKS-61-77777', 'Trabzon', 'Maçka', 'Gezgin', 'Konvansiyonel', 110),
+('Hatice', 'Yıldız', '05301112233', 'AKS-16-88888', 'Bursa', 'İznik', 'Sabit', 'Organik', 40);
 
--- Örnek Ballar
 INSERT INTO ballar (bal_isim, bal_cinsi, cicek_bal_id, salgi_bal_id, renk_id, arici_id, fiyat, stok_miktari, agirlik_gram) VALUES 
-('Mugla Organik Cam Bali', 'Salgi Bali', NULL, 1, 6, 1, 450.00, 50, 850),
-('Fethiye Kestane Bali', 'Cicek Bali', 4, NULL, 7, 2, 380.00, 30, 500);
+('Fethiye Kestane Balı', 'Cicek Bali', 4, NULL, 7, 2, 380.00, 30, 500),
+('Isparta Lavanta Balı', 'Cicek Bali', 6, NULL, 5, 3, 520.00, 8, 600),       
+('Antalya Akasya Balı', 'Cicek Bali', 7, NULL, 3, 4, 350.00, 25, 500),
+('Balıkesir Ayçiçeği Balı', 'Cicek Bali', 2, NULL, 3, 6, 320.00, 80, 500),
+('Trabzon İhlamur Balı', 'Cicek Bali', 5, NULL, 3, 9, 430.00, 0, 500),   
+('Muğla Organik Çam Balı', 'Salgi Bali', NULL, 1, 6, 1, 450.00, 50, 850),
+('Çanakkale Çam Balı', 'Salgi Bali', NULL, 1, 7, 5, 470.00, 0, 750),
+('Erzurum Çam Balı', 'Salgi Bali', NULL, 1, 6, 7, 440.00, 35, 850),
+('Ordu Çam Balı', 'Salgi Bali', NULL, 1, 6, 8, 445.00, 18, 750),
+('Bursa Sedir Balı', 'Salgi Bali', NULL, 2, 6, 10, 480.00, 0, 850);
 
--- Örnek Müşteri
-INSERT INTO musteriler (kullanici_adi, isim, soyisim, cinsiyet, eposta, sifre) VALUES
-('testuser', 'Test', 'Kullanici', 'Erkek', 'test@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
-
--- Örnek Değerlendirme
-INSERT INTO degerlendirmeler (bal_id, musteri_id, yildiz, yorum, onaylandi) VALUES
-(1, 1, 5, 'Cok lezzetli ve dogal bir bal, tavsiye ederim.', 1);
 
 SELECT 'Veritabani basariyla olusturuldu!' AS Sonuc;
